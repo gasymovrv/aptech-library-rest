@@ -1,0 +1,304 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-2.0.xsd">
+
+    <!--Запускать через мавен-плагин, выполнить liquibase:update-->
+
+    <changeSet author="rgasymov" id="20180526-01">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists schemaName="aplib" tableName="user"/>
+            </not>
+        </preConditions>
+        <sql>
+            CREATE  TABLE user (
+            username VARCHAR(45) NOT NULL ,
+            password VARCHAR(64) NOT NULL ,
+            enabled TINYINT NOT NULL DEFAULT 1 ,
+            PRIMARY KEY (username));
+        </sql>
+    </changeSet>
+
+    <changeSet author="rgasymov" id="20180526-02">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists schemaName="aplib" tableName="user_role"/>
+            </not>
+        </preConditions>
+        <sql>
+            CREATE TABLE user_role (
+            user_role_id int(11) NOT NULL AUTO_INCREMENT,
+            username varchar(45) NOT NULL,
+            role varchar(45) NOT NULL,
+            PRIMARY KEY (user_role_id),
+            UNIQUE KEY uni_username_role (role,username),
+            KEY fk_username_idx (username),
+            CONSTRAINT fk_username FOREIGN KEY (username) REFERENCES user (username));
+        </sql>
+    </changeSet>
+
+    <changeSet author="rgasymov" id="20180526-03">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists schemaName="aplib" tableName="persistent_logins"/>
+            </not>
+        </preConditions>
+        <sql>
+            CREATE TABLE persistent_logins (
+            username varchar(64) not null,
+            series varchar(64) not null,
+            token varchar(64) not null,
+            last_used timestamp not null,
+            PRIMARY KEY (series)
+            );
+        </sql>
+    </changeSet>
+
+    <changeSet author="rgasymov" id="20180526-04">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0">
+                SELECT count(*) FROM user WHERE username='admin';
+            </sqlCheck>
+        </preConditions>
+        <sql>
+            <!--username:admin password:q-->
+            INSERT INTO `user`(`username`, `password`, `enabled`) VALUES ('admin', '$2a$05$IHUj33qfJo7veMhOY06CxOEt6Y6IPZX5cB3zbxuz.EVdUvd.XNrou', true);
+        </sql>
+    </changeSet>
+
+    <changeSet author="rgasymov" id="20180526-05">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0">
+                SELECT count(*) FROM user WHERE username='user';
+            </sqlCheck>
+        </preConditions>
+        <sql>
+            <!--username:user password:q-->
+            INSERT INTO `user`(`username`, `password`, `enabled`) VALUES ('user', '$2a$05$IHUj33qfJo7veMhOY06CxOEt6Y6IPZX5cB3zbxuz.EVdUvd.XNrou', true);
+        </sql>
+    </changeSet>
+
+    <changeSet author="rgasymov" id="20180526-06">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0">
+                SELECT count(*) FROM user_role WHERE username='admin';
+            </sqlCheck>
+        </preConditions>
+        <sql>
+            INSERT INTO `user_role`(`username`, `role`) VALUES ('admin', 'ROLE_ADMIN');
+            INSERT INTO `user_role`(`username`, `role`) VALUES ('admin', 'ROLE_USER');
+        </sql>
+    </changeSet>
+
+    <changeSet author="rgasymov" id="20180526-07">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0">
+                SELECT count(*) FROM user_role WHERE username='user';
+            </sqlCheck>
+        </preConditions>
+        <sql>
+            INSERT INTO `user_role`(`username`, `role`) VALUES ('user', 'ROLE_USER');
+        </sql>
+    </changeSet>
+
+    <changeSet author="rgasymov" id="20180527-01">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists schemaName="aplib" tableName="author" columnName="created"/>
+            </not>
+        </preConditions>
+        <sql>
+            ALTER TABLE author ADD COLUMN created datetime;
+            UPDATE author SET created = current_date();
+        </sql>
+    </changeSet>
+
+    <changeSet author="rgasymov" id="20180527-02">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists schemaName="aplib" tableName="book" columnName="created"/>
+            </not>
+        </preConditions>
+        <sql>
+            ALTER TABLE book ADD COLUMN created datetime;
+            UPDATE book SET created = current_date();
+        </sql>
+    </changeSet>
+
+    <changeSet author="rgasymov" id="20180529-01">
+        <sql>ALTER TABLE author MODIFY COLUMN birthday date null;</sql>
+    </changeSet>
+
+    <changeSet author="rgasymov" id="20180529-02">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0">
+                SELECT count(*) FROM author WHERE fio='Неизвестный автор';
+            </sqlCheck>
+        </preConditions>
+        <sql>INSERT INTO author (fio) VALUES ('Неизвестный автор');</sql>
+    </changeSet>
+
+    <changeSet author="rgasymov" id="20180604-01">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists schemaName="aplib" tableName="book" columnName="views"/>
+            </not>
+        </preConditions>
+        <sql>
+            ALTER TABLE book ADD COLUMN views bigint(20) NOT NULL DEFAULT '0';
+        </sql>
+    </changeSet>
+
+    <changeSet author="rgasymov" id="20180604-02">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists schemaName="aplib" tableName="author" columnName="views"/>
+            </not>
+        </preConditions>
+        <sql>
+            ALTER TABLE author ADD COLUMN views bigint(20) NOT NULL DEFAULT '0';
+            UPDATE author a SET a.views = IFNULL((SELECT sum(b.views) FROM book b WHERE b.author_id = a.id), 0);
+        </sql>
+    </changeSet>
+
+    <changeSet author="rgasymov" id="20180605-01">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists schemaName="aplib" tableName="users_views"/>
+            </not>
+        </preConditions>
+        <sql>
+            CREATE TABLE users_views (
+                id bigint(20) NOT NULL AUTO_INCREMENT,
+                username VARCHAR(45) NOT NULL,
+                book_id bigint(20) NOT NULL,
+                views bigint(20) NOT NULL DEFAULT '0',
+                UNIQUE KEY user_book_unq (username, book_id),
+                CONSTRAINT fk_book FOREIGN KEY (book_id) REFERENCES book (id),
+                CONSTRAINT fk_user FOREIGN KEY (username) REFERENCES user (username),
+                PRIMARY KEY (id)
+            );
+        </sql>
+    </changeSet>
+
+    <changeSet author="rgasymov" id="20180606-01">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists schemaName="aplib" tableName="book" columnName="price"/>
+            </not>
+        </preConditions>
+        <sql>
+            ALTER TABLE book ADD COLUMN price DECIMAL(16, 2) NOT NULL;
+            UPDATE book SET price = (rand()*5000)+200;
+        </sql>
+    </changeSet>
+
+    <changeSet author="rgasymov" id="20180608-01">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists schemaName="aplib" tableName="cart"/>
+                <tableExists schemaName="aplib" tableName="order_"/>
+                <tableExists schemaName="aplib" tableName="carts_to_books"/>
+                <tableExists schemaName="aplib" tableName="orders_to_books"/>
+            </not>
+        </preConditions>
+        <sql>
+            CREATE TABLE cart (
+            username VARCHAR(45) NOT NULL,
+            PRIMARY KEY (username),
+            CONSTRAINT fk_cart_to_user FOREIGN KEY (username) REFERENCES user (username)
+            );
+
+            CREATE TABLE order_ (
+            id bigint(20) NOT NULL AUTO_INCREMENT,
+            username VARCHAR(45) NOT NULL,
+            created datetime,
+            PRIMARY KEY (id),
+            CONSTRAINT fk_order_to_user FOREIGN KEY (username) REFERENCES user (username)
+            );
+
+            CREATE TABLE carts_to_books (
+            username VARCHAR(45) NOT NULL,
+            book_id bigint(20) NOT NULL,
+            PRIMARY KEY (username, book_id),
+            CONSTRAINT fk_cart FOREIGN KEY (username) REFERENCES cart (username),
+            CONSTRAINT fk_c_to_book FOREIGN KEY (book_id) REFERENCES book (id)
+            );
+
+            CREATE TABLE orders_to_books (
+            order_id bigint(20) NOT NULL,
+            book_id bigint(20) NOT NULL,
+            PRIMARY KEY (order_id, book_id),
+            CONSTRAINT fk_order FOREIGN KEY (order_id) REFERENCES order_ (id),
+            CONSTRAINT fk_o_to_book FOREIGN KEY (book_id) REFERENCES book (id)
+            );
+
+            INSERT INTO cart(username) VALUES ('user');
+            INSERT INTO cart(username) VALUES ('admin');
+        </sql>
+    </changeSet>
+
+    <changeSet author="rgasymov" id="20180608-02">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists schemaName="aplib" tableName="user" columnName="money"/>
+            </not>
+        </preConditions>
+        <sql>ALTER TABLE user ADD COLUMN money DECIMAL(16, 2) DEFAULT 0.0 NOT NULL;</sql>
+    </changeSet>
+
+    <changeSet author="rgasymov" id="20180614-01">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists schemaName="aplib" tableName="book" columnName="file_extension"/>
+            </not>
+        </preConditions>
+        <sql>ALTER TABLE book ADD COLUMN file_extension varchar(20) DEFAULT 'pdf' NOT NULL;</sql>
+    </changeSet>
+
+    <changeSet author="rgasymov" id="20180615-01">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists schemaName="aplib" tableName="book" columnName="content_type"/>
+            </not>
+        </preConditions>
+        <sql>ALTER TABLE book ADD COLUMN content_type varchar(450) DEFAULT 'application/pdf' NULL;</sql>
+    </changeSet>
+
+    <changeSet author="rgasymov" id="20180616-01">
+        <sql>ALTER TABLE book MODIFY COLUMN name varchar(450) not null;</sql>
+    </changeSet>
+
+    <changeSet author="rgasymov" id="20180619-01">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists schemaName="aplib" tableName="book_content"/>
+            </not>
+        </preConditions>
+        <sql>
+            CREATE TABLE book_content (
+            id bigint(20) NOT NULL AUTO_INCREMENT,
+            book_id bigint(20) NOT NULL,
+            content longblob NOT NULL,
+            PRIMARY KEY (id),
+            CONSTRAINT fk_book_content FOREIGN KEY (book_id) REFERENCES book (id) ON DELETE CASCADE
+            );
+            INSERT INTO book_content (book_id,content) SELECT id,content FROM book;
+            ALTER TABLE book DROP COLUMN content;
+        </sql>
+    </changeSet>
+
+    <changeSet author="rgasymov" id="20180620-01">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists schemaName="aplib" tableName="book" columnName="file_size"/>
+            </not>
+        </preConditions>
+        <sql>
+            ALTER TABLE book ADD COLUMN file_size varchar(45) NULL;
+            UPDATE book b set b.file_size=(select OCTET_LENGTH(bc.content) FROM book_content bc WHERE b.id = bc.book_id)/1000000;
+        </sql>
+    </changeSet>
+</databaseChangeLog>
