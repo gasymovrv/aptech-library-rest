@@ -19,24 +19,24 @@ public class LibraryApplication {
 // 		context.close();
     }
 
-
-    /**
-     * Глобальное разрешение CORS
-     * Википедия:
-     * "Cross-origin resource sharing
-     * (CORS; с англ. — «совместное использование ресурсов между разными источниками») —
-     * технология современных браузеров,
-     * которая позволяет предоставить веб-странице доступ к ресурсам другого домена
-     */
-    @Bean
-    public WebMvcConfigurer corsConfigurer() {
-        return new WebMvcConfigurer() {
-            @Override
-            public void addCorsMappings(CorsRegistry registry) {
-                registry.addMapping("/**")
-                        .allowedMethods("DELETE", "GET", "POST")
-                        .allowedOrigins("*");
-            }
-        };
-    }
+// теперь не нужно, т.к. рест-запросы с того же сервера
+//    /**
+//     * Глобальное разрешение CORS
+//     * Википедия:
+//     * "Cross-origin resource sharing
+//     * (CORS; с англ. — «совместное использование ресурсов между разными источниками») —
+//     * технология современных браузеров,
+//     * которая позволяет предоставить веб-странице доступ к ресурсам другого домена
+//     */
+//    @Bean
+//    public WebMvcConfigurer corsConfigurer() {
+//        return new WebMvcConfigurer() {
+//            @Override
+//            public void addCorsMappings(CorsRegistry registry) {
+//                registry.addMapping("/**")
+//                        .allowedMethods("DELETE", "GET", "POST")
+//                        .allowedOrigins("*");
+//            }
+//        };
+//    }
 }

@@ -1,5 +1,5 @@
 import React from 'react';
-// import Calendar from 'react-calendar';
+import Calendar from 'react-calendar';
 import InfoBox from '../../InfoBox';
 
 export default function AuthorForm({data, savedData, oldData, onSubmit, onReset, onChange, onChangeDate, isEdit, successSubmit, showInfo, callbackStopShow}) {
@@ -41,13 +41,13 @@ export default function AuthorForm({data, savedData, oldData, onSubmit, onReset,
                         Дата рождения
                     </label>
                     <div className='col-sm-10'>
-                        {/*<Calendar*/}
-                            {/*id='birthday'*/}
-                            {/*value={birthday}*/}
-                            {/*locale='ru-RU'*/}
-                            {/*onChange={onChangeDate('birthday')}*/}
-                            {/*maxDate={new Date()}*/}
-                        {/*/>*/}
+                        <Calendar
+                            id='birthday'
+                            value={birthday}
+                            locale='ru-RU'
+                            onChange={onChangeDate('birthday')}
+                            maxDate={new Date()}
+                        />
                     </div>
                 </div>
                 {/*<div className="form-group">*/}

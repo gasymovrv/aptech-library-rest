@@ -6,7 +6,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 @Controller
 public class HomeController {
 
-    @RequestMapping(value = "/")
+    //При обновлении страницы, когда путь например authors/1/edit - не работает
+    @RequestMapping(value = {"/books/**", "/authors/**", "/about-us/**", "/auth/**"})
     public String index() {
         return "index";
     }
