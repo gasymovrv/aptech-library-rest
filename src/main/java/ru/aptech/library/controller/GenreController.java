@@ -8,7 +8,7 @@ import ru.aptech.library.service.GenreService;
 import java.util.List;
 
 @RestController
-@RequestMapping("/genres")
+@RequestMapping("api/genres")
 public class GenreController {
 
     @Autowired

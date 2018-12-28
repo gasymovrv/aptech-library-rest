@@ -14,7 +14,7 @@ import ru.aptech.library.service.impl.UserService;
 import javax.validation.Valid;
 
 @RestController
-@RequestMapping("/users")
+@RequestMapping("api/users")
 public class UserController {
 
     @Autowired
