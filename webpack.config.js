@@ -26,13 +26,10 @@ module.exports = {
                 use: ['style-loader', 'css-loader'],
             },
             {
-                test: /\.(png|jpg|gif|svg)$/,
+                test: /\.(png|jpg|gif|svg)$/i,
                 use: [{
-                    loader: 'file-loader',
-                    options: {
-                        name: 'src/main/resources/static/img/[name].[ext]'
-                        // name: "[path][name].[ext]",
-                    }
+                    loader: 'url-loader',
+                    options: {}
                 }]
             }
         ]

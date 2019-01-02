@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -44,31 +45,31 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
         http
             .csrf().disable()
             .authorizeRequests()
-                .antMatchers("/").permitAll()
-                .antMatchers("api/authors/findAll/**").permitAll()
-                .antMatchers("api/genres/findAll/**").permitAll()
-                .antMatchers("api/books/findAll/**").permitAll()
-                .antMatchers("api/authors/findById/**").permitAll()
-                .antMatchers("api/genres/findById/**").permitAll()
-                .antMatchers("api/books/findById/**").permitAll()
-                .antMatchers("api/users/registration").permitAll()
-                .antMatchers("api/users/userIsAuthorize").permitAll()
-                .antMatchers("api/authors/save").hasAuthority("ADMIN")
-                .antMatchers("api/authors/deleteById/**").hasAuthority("ADMIN")
-                .antMatchers("api/books/save").hasAuthority("ADMIN")
-                .antMatchers("api/books/deleteById/**").hasAuthority("ADMIN")
+                .antMatchers("/api/authors/findAll/**").permitAll()
+                .antMatchers("/api/genres/findAll/**").permitAll()
+                .antMatchers("/api/books/findAll/**").permitAll()
+                .antMatchers("/api/authors/findById/**").permitAll()
+                .antMatchers("/api/genres/findById/**").permitAll()
+                .antMatchers("/api/books/findById/**").permitAll()
+                .antMatchers("/api/users/registration").permitAll()
+                .antMatchers("/api/users/userIsAuthorize").permitAll()
+                .antMatchers("/api/authors/save").hasAuthority("ADMIN")
+                .antMatchers("/api/authors/deleteById/**").hasAuthority("ADMIN")
+                .antMatchers("/api/books/save").hasAuthority("ADMIN")
+                .antMatchers("/api/books/deleteById/**").hasAuthority("ADMIN")
+                .antMatchers("/", "/books/**", "/authors/**", "/about-us/**", "/auth/**").permitAll()
                 .anyRequest().authenticated()
                 .and().logout()
-                .logoutRequestMatcher(new AntPathRequestMatcher("/users/logout"))
+                .logoutRequestMatcher(new AntPathRequestMatcher("/api/users/logout"))
                 .and()
                 .httpBasic();
     }
 
-//    @Override
-//    public void configure(WebSecurity web) throws Exception {
-//        web
-//                .ignoring()
-//                .antMatchers("/resources/**", "/static/**", "/css/**", "/js/**", "/images/**");
-//    }
+    @Override
+    public void configure(WebSecurity web) throws Exception {
+        web
+                .ignoring()
+                .antMatchers("/resources/**", "/static/**", "/css/**", "/built/**", "/img/**", "/fonts/**");
+    }
 
 }
